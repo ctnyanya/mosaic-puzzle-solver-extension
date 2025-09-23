@@ -15,11 +15,11 @@ if (typeof window.MOSAIC_DEBUG === 'undefined') {
 // 调试日志函数
 function debugLog(...args) {
     if (window.MOSAIC_DEBUG) {
-        console.log(...args);
+        debugLog(...args);
     }
 }
 
-console.log("🎯 马赛克拼图扩展已加载！");
+debugLog("🎯 马赛克拼图扩展已加载！");
 
 // 全局变量：保存步骤演示的状态
 let stepSolverState = null;
@@ -28,16 +28,16 @@ let stepSolverState = null;
 
 // 设置机器人标识 - 让网站知道我们是自动求解器
 function setRobotFlag() {
-    console.log("🤖 设置机器人标识...");
+    debugLog("🤖 设置机器人标识...");
 
     const robotField = document.getElementById('robot');
     if (robotField) {
         robotField.value = '1';
-        console.log("✅ 已设置机器人标识为1");
-        console.log("🏆 现在我们将进入机器人名人堂！");
-        console.log("📜 作者消息:", robotField.getAttribute('data-info'));
+        debugLog("✅ 已设置机器人标识为1");
+        debugLog("🏆 现在我们将进入机器人名人堂！");
+        debugLog("📜 作者消息:", robotField.getAttribute('data-info'));
     } else {
-        console.log("❌ 未找到机器人标识字段");
+        debugLog("❌ 未找到机器人标识字段");
     }
 }
 
@@ -45,7 +45,7 @@ function setRobotFlag() {
 function findPuzzleCells() {
     // 根据之前分析的DOM结构，查找所有单元格
     const cells = document.querySelectorAll('.cell.selectable');
-    console.log(`📋 找到 ${cells.length} 个拼图单元格`);
+    debugLog(`📋 找到 ${cells.length} 个拼图单元格`);
     return cells;
 }
 
@@ -89,21 +89,23 @@ function analyzeCellState(cell) {
     };
 }
 
-// 工具函数：点击单元格 (增强版)
+
+
+// 工具函数：点击单元格 (增强版) - 保持兼容性
 function clickCell(cell) {
-    console.log(`🖱️ 点击单元格 (${cell.row}, ${cell.col}), 当前状态: ${cell.state}`);
+    debugLog(`🖱️ 点击单元格 (${cell.row}, ${cell.col}), 当前状态: ${cell.state}`);
 
     const element = cell.element;
 
     // 尝试多种点击方式，因为网站可能有特殊的事件处理
 
     // 方式1: 直接click()
-    console.log("   尝试方式1: element.click()");
+    debugLog("   尝试方式1: element.click()");
     element.click();
 
     // 方式2: 模拟鼠标事件
     setTimeout(() => {
-        console.log("   尝试方式2: 鼠标事件");
+        debugLog("   尝试方式2: 鼠标事件");
 
         const rect = element.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
@@ -127,7 +129,7 @@ function clickCell(cell) {
 
     // 方式3: 尝试触发焦点和键盘事件
     setTimeout(() => {
-        console.log("   尝试方式3: 焦点事件");
+        debugLog("   尝试方式3: 焦点事件");
         element.focus();
 
         // 模拟空格键或回车键
@@ -142,20 +144,20 @@ function clickCell(cell) {
     // 等待状态更新并检查结果
     setTimeout(() => {
         const newState = analyzeCellState(element);
-        console.log(`   最终状态: ${newState.state}`);
+        debugLog(`   最终状态: ${newState.state}`);
 
         if (newState.state !== cell.state) {
-            console.log("   ✅ 单元格状态已改变！");
+            debugLog("   ✅ 单元格状态已改变！");
         } else {
-            console.log("   ❌ 单元格状态未改变");
-            console.log("   💡 可能需要检查网站的事件处理机制");
+            debugLog("   ❌ 单元格状态未改变");
+            debugLog("   💡 可能需要检查网站的事件处理机制");
         }
     }, 600);
 }
 
 // 主要功能：分析整个拼图
 function analyzePuzzle() {
-    console.log("🔍 开始分析拼图...");
+    debugLog("🔍 开始分析拼图...");
 
     const cells = findPuzzleCells();
     const puzzleData = [];
@@ -175,11 +177,11 @@ function analyzePuzzle() {
         withNumbers: puzzleData.filter(c => c.number).length
     };
 
-    console.log("📊 拼图分析结果:", stats);
+    debugLog("📊 拼图分析结果:", stats);
 
     // 显示一些数字约束示例
     const numberedCells = puzzleData.filter(c => c.number).slice(0, 5);
-    console.log("🔢 数字约束示例:", numberedCells.map(c =>
+    debugLog("🔢 数字约束示例:", numberedCells.map(c =>
         `(${c.row},${c.col}): ${c.number}`
     ));
 
@@ -188,40 +190,40 @@ function analyzePuzzle() {
 
 // 测试功能：随机点击几个空白单元格
 function testRandomClicks() {
-    console.log("🎲 测试随机点击功能...");
+    debugLog("🎲 测试随机点击功能...");
 
     const puzzleData = analyzePuzzle();
     const emptyCells = puzzleData.filter(c => c.state === 'empty');
 
     if (emptyCells.length === 0) {
-        console.log("❌ 没有找到空白单元格");
+        debugLog("❌ 没有找到空白单元格");
         return;
     }
 
     // 随机选择5个空白单元格进行点击测试
     const testCells = emptyCells.sort(() => Math.random() - 0.5).slice(0, 5);
 
-    console.log(`🧪 准备同时点击 ${testCells.length} 个单元格...`);
+    debugLog(`🧪 准备同时点击 ${testCells.length} 个单元格...`);
 
     // 同时点击所有选中的单元格
     testCells.forEach((cell, index) => {
-        console.log(`🎯 同时点击单元格 ${index + 1}: (${cell.row}, ${cell.col})`);
+        debugLog(`🎯 同时点击单元格 ${index + 1}: (${cell.row}, ${cell.col})`);
         clickCell(cell);
     });
 
-    console.log("✅ 所有点击命令已发出！");
+    debugLog("✅ 所有点击命令已发出！");
 }
 
 // 新增：批量点击函数 - 用于求解算法
 function clickMultipleCells(cells) {
-    console.log(`🔥 批量点击 ${cells.length} 个单元格...`);
+    debugLog(`🔥 批量点击 ${cells.length} 个单元格...`);
 
     cells.forEach((cell, index) => {
-        console.log(`   点击 ${index + 1}/${cells.length}: (${cell.row}, ${cell.col}) 状态: ${cell.state}`);
+        debugLog(`   点击 ${index + 1}/${cells.length}: (${cell.row}, ${cell.col}) 状态: ${cell.state}`);
         clickCell(cell);
     });
 
-    console.log("🎯 批量点击完成！");
+    debugLog("🎯 批量点击完成！");
 }
 
 // 算法相关代码已移至 mosaic-solver.js
@@ -280,9 +282,10 @@ function convertSolutionToClicks(solution, puzzleData) {
     return clickCoordinates;
 }
 
-// 根据坐标数组点击单元格
+
+// 根据坐标数组点击单元格 - 保持兼容性
 function clickCellsByCoordinates(coordinates, puzzleData, stepByStep = false) {
-    console.log(`🖱️ 准备点击 ${coordinates.length} 个单元格...`);
+    debugLog(`🖱️ 准备点击 ${coordinates.length} 个单元格...`);
 
     // 创建DOM元素映射
     const cellMap = {};
@@ -297,7 +300,7 @@ function clickCellsByCoordinates(coordinates, puzzleData, stepByStep = false) {
         return cellMap[key];
     }).filter(cell => cell !== undefined);
 
-    console.log(`🎯 找到 ${cellsToClick.length} 个有效单元格`);
+    debugLog(`🎯 找到 ${cellsToClick.length} 个有效单元格`);
 
     // 执行点击
     if (stepByStep) {
@@ -309,8 +312,8 @@ function clickCellsByCoordinates(coordinates, puzzleData, stepByStep = false) {
 
 // 主要的求解函数 - 整合所有步骤
 async function solveMosaicPuzzle(stepByStep = false) {
-    console.log("🧠 开始求解马赛克拼图...");
-    console.log(`📋 模式: ${stepByStep ? '步骤演示' : '即时求解'}`);
+    debugLog("🧠 开始求解马赛克拼图...");
+    debugLog(`📋 模式: ${stepByStep ? '步骤演示' : '即时求解'}`);
 
     // 1. 获取拼图数据
     const puzzleData = analyzePuzzle();
@@ -322,7 +325,7 @@ async function solveMosaicPuzzle(stepByStep = false) {
     // 2. 转换为算法输入格式
     const constraintGrid = convertToConstraintGrid(puzzleData);
     if (!constraintGrid) {
-        console.log("❌ 转换约束网格失败");
+        debugLog("❌ 转换约束网格失败");
         return false;
     }
 
@@ -331,7 +334,7 @@ async function solveMosaicPuzzle(stepByStep = false) {
     if (stepByStep) {
         // 步骤演示模式：在算法内部直接执行点击
         solution = await solveMosaicAlgorithm(constraintGrid, true, puzzleData);
-        console.log("🎬 步骤演示完成！");
+        debugLog("🎬 步骤演示完成！");
         return true; // 直接返回，不需要额外点击
     } else {
         // 即时求解模式：算法完成后一次性点击
@@ -340,7 +343,7 @@ async function solveMosaicPuzzle(stepByStep = false) {
         // 4. 转换解决方案为点击坐标
         const clickCoordinates = convertSolutionToClicks(solution, puzzleData);
 
-        console.log(`🎲 生成了 ${clickCoordinates.length} 个点击坐标`);
+        debugLog(`🎲 生成了 ${clickCoordinates.length} 个点击坐标`);
 
         // 5. 执行点击
         clickCellsByCoordinates(clickCoordinates, puzzleData, false);
@@ -367,22 +370,22 @@ function getNeighbors(grid, row, col) {
 
 // 即时执行所有点击
 function executeClicksInstantly(cells) {
-    console.log("⚡ 即时执行所有点击...");
+    debugLog("⚡ 即时执行所有点击...");
     clickMultipleCells(cells);
-    console.log("✅ 即时点击完成！");
+    debugLog("✅ 即时点击完成！");
 }
 
 // 带延时的点击演示
 function executeClicksWithDelay(cells) {
-    console.log("🎬 开始点击演示...");
+    debugLog("🎬 开始点击演示...");
 
     cells.forEach((cell, index) => {
         setTimeout(() => {
-            console.log(`📍 步骤 ${index + 1}/${cells.length}: 点击 (${cell.row}, ${cell.col})`);
+            debugLog(`📍 步骤 ${index + 1}/${cells.length}: 点击 (${cell.row}, ${cell.col})`);
             clickCell(cell);
 
             if (index === cells.length - 1) {
-                console.log("🎉 点击演示完成！");
+                debugLog("🎉 点击演示完成！");
             }
         }, index * 1000); // 每秒执行一步
     });
@@ -390,7 +393,7 @@ function executeClicksWithDelay(cells) {
 
 // 新增：调试单元格事件监听器
 function debugCellEvents(cell) {
-    console.log("🔍 调试单元格事件监听器...");
+    debugLog("🔍 调试单元格事件监听器...");
 
     const element = cell.element;
 
@@ -399,68 +402,68 @@ function debugCellEvents(cell) {
 
     events.forEach(eventType => {
         element.addEventListener(eventType, (e) => {
-            console.log(`   🎯 检测到 ${eventType} 事件:`, e);
+            debugLog(`   🎯 检测到 ${eventType} 事件:`, e);
         }, { once: true, capture: true });
     });
 
     // 检查是否有jQuery事件
     const jQueryEvents = element._events || $(element).data('events');
     if (jQueryEvents) {
-        console.log("   📚 jQuery事件:", jQueryEvents);
+        debugLog("   📚 jQuery事件:", jQueryEvents);
     }
 
     // 尝试手动触发原生click事件
     setTimeout(() => {
-        console.log("   🔥 尝试手动触发原生事件...");
+        debugLog("   🔥 尝试手动触发原生事件...");
         element.click();
     }, 1000);
 }
 
 // 新增：高级点击测试
 function advancedClickTest() {
-    console.log("🧪 高级点击测试开始...");
+    debugLog("🧪 高级点击测试开始...");
 
     const puzzleData = analyzePuzzle();
     const emptyCells = puzzleData.filter(c => c.state === 'empty').slice(0, 1);
 
     if (emptyCells.length === 0) {
-        console.log("❌ 没有找到空白单元格");
+        debugLog("❌ 没有找到空白单元格");
         return;
     }
 
     const testCell = emptyCells[0];
-    console.log(`🎯 选择测试单元格: (${testCell.row}, ${testCell.col})`);
+    debugLog(`🎯 选择测试单元格: (${testCell.row}, ${testCell.col})`);
 
     // 调试事件监听器
     debugCellEvents(testCell);
 
     // 尝试直接调用可能的JavaScript函数
     setTimeout(() => {
-        console.log("🔍 尝试查找游戏对象...");
+        debugLog("🔍 尝试查找游戏对象...");
 
         // 检查全局游戏对象
         if (window.Game) {
-            console.log("   找到全局Game对象:", window.Game);
+            debugLog("   找到全局Game对象:", window.Game);
         }
 
         // 检查jQuery对象
         if (window.$ && $('#game').length > 0) {
-            console.log("   找到游戏容器jQuery对象");
+            debugLog("   找到游戏容器jQuery对象");
 
             // 尝试触发jQuery事件
             $(testCell.element).trigger('click');
-            console.log("   已触发jQuery click事件");
+            debugLog("   已触发jQuery click事件");
         }
 
         // 检查是否有特殊的游戏函数
         ['cellClick', 'toggleCell', 'selectCell'].forEach(funcName => {
             if (window[funcName]) {
-                console.log(`   找到全局函数: ${funcName}`);
+                debugLog(`   找到全局函数: ${funcName}`);
             }
         });
 
         // 新增：检查网站内部的JavaScript代码
-        console.log("🔍 检查网站内部代码...");
+        debugLog("🔍 检查网站内部代码...");
 
         // 尝试查找所有可能的全局变量
         const gameRelatedVars = Object.keys(window).filter(key =>
@@ -471,30 +474,30 @@ function advancedClickTest() {
         );
 
         if (gameRelatedVars.length > 0) {
-            console.log("   找到相关全局变量:", gameRelatedVars);
+            debugLog("   找到相关全局变量:", gameRelatedVars);
             gameRelatedVars.forEach(varName => {
-                console.log(`   ${varName}:`, window[varName]);
+                debugLog(`   ${varName}:`, window[varName]);
             });
         }
 
         // 尝试直接修改DOM元素的class
-        console.log("🎯 尝试直接修改DOM...");
+        debugLog("🎯 尝试直接修改DOM...");
         const originalClass = testCell.element.className;
-        console.log(`   原始class: ${originalClass}`);
+        debugLog(`   原始class: ${originalClass}`);
 
         // 尝试切换到填充状态
         if (originalClass.includes('cell-off')) {
             testCell.element.className = originalClass.replace('cell-off', 'cell-on');
-            console.log("   已尝试切换到 cell-on 状态");
+            debugLog("   已尝试切换到 cell-on 状态");
 
             // 检查是否成功
             setTimeout(() => {
                 const newClass = testCell.element.className;
-                console.log(`   修改后class: ${newClass}`);
+                debugLog(`   修改后class: ${newClass}`);
                 if (newClass !== originalClass) {
-                    console.log("   ✅ DOM修改成功！");
+                    debugLog("   ✅ DOM修改成功！");
                 } else {
-                    console.log("   ❌ DOM修改被覆盖，可能有JavaScript在监控");
+                    debugLog("   ❌ DOM修改被覆盖，可能有JavaScript在监控");
                     // 恢复原始状态
                     testCell.element.className = originalClass;
                 }
@@ -555,7 +558,7 @@ function resetPuzzleGrid() {
 
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("📨 收到消息:", message);
+    debugLog("📨 收到消息:", message);
 
     // 添加错误处理
     try {
@@ -662,12 +665,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // 页面加载完成后的初始化
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("📄 页面加载完成，扩展已准备就绪");
+    debugLog("📄 页面加载完成，扩展已准备就绪");
     setRobotFlag(); // 立即设置机器人标识
 
     // 延迟一下确保页面完全加载
     setTimeout(() => {
-        console.log("🎯 检查是否需要自动求解...");
+        debugLog("🎯 检查是否需要自动求解...");
         // 可以在这里添加自动求解逻辑
         // solveMosaicPuzzle(false); // 取消注释以启用自动求解
     }, 2000);
@@ -675,26 +678,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 通知background script页面已准备好
 function notifyPageReady() {
-    console.log("📡 通知后台脚本：马赛克拼图页面已准备就绪");
+    debugLog("📡 通知后台脚本：马赛克拼图页面已准备就绪");
     try {
         chrome.runtime.sendMessage({
             action: 'page_ready',
             url: window.location.href
         });
     } catch (error) {
-        console.log("通知后台脚本失败（这是正常的）:", error.message);
+        debugLog("通知后台脚本失败（这是正常的）:", error.message);
     }
 }
 
 // 如果页面已经加载完成，立即执行初始化
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("📄 页面加载完成，扩展已准备就绪");
+        debugLog("📄 页面加载完成，扩展已准备就绪");
         setRobotFlag(); // 立即设置机器人标识
         notifyPageReady(); // 通知后台脚本
     });
 } else {
-    console.log("📄 页面已加载，扩展已准备就绪");
+    debugLog("📄 页面已加载，扩展已准备就绪");
     setRobotFlag(); // 立即设置机器人标识
     notifyPageReady(); // 通知后台脚本
 }

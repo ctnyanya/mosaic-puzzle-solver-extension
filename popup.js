@@ -7,6 +7,18 @@
  * - 控制扩展的用户界面
  */
 
+// 调试模式控制（与其他文件共享）
+if (typeof window.MOSAIC_DEBUG === 'undefined') {
+    window.MOSAIC_DEBUG = false;
+}
+
+// 调试日志函数
+function debugLog(...args) {
+    if (window.MOSAIC_DEBUG) {
+        debugLog(...args);
+    }
+}
+
 // 获取页面元素
 const analyzeBtn = document.getElementById('analyzeBtn');
 const solveBtn = document.getElementById('solveBtn');
@@ -65,7 +77,7 @@ async function sendMessageToContentScript(message) {
 
 // 分析拼图按钮点击事件
 analyzeBtn.addEventListener('click', async () => {
-    console.log('🔍 用户点击了分析拼图按钮');
+    debugLog('🔍 用户点击了分析拼图按钮');
 
     // 禁用按钮防止重复点击
     analyzeBtn.disabled = true;
@@ -79,7 +91,7 @@ analyzeBtn.addEventListener('click', async () => {
 
         if (response && response.success) {
             showStatus(response.message, 'success');
-            console.log('📊 拼图分析结果:', response.data);
+            debugLog('📊 拼图分析结果:', response.data);
         } else {
             showStatus('分析失败', 'error');
         }
@@ -97,10 +109,10 @@ analyzeBtn.addEventListener('click', async () => {
 
 // 求解拼图按钮点击事件
 solveBtn.addEventListener('click', async () => {
-    console.log('🧠 用户点击了求解拼图按钮');
+    debugLog('🧠 用户点击了求解拼图按钮');
 
     const isStepByStep = stepByStepMode.checked;
-    console.log(`📋 选择的模式: ${isStepByStep ? '步骤演示' : '即时求解'}`);
+    debugLog(`📋 选择的模式: ${isStepByStep ? '步骤演示' : '即时求解'}`);
 
     // 禁用按钮防止重复点击
     solveBtn.disabled = true;
@@ -144,7 +156,7 @@ solveBtn.addEventListener('click', async () => {
 
 // 下一步按钮点击事件
 nextStepBtn.addEventListener('click', async () => {
-    console.log('👉 用户点击了下一步按钮');
+    debugLog('👉 用户点击了下一步按钮');
 
     try {
         // 向content script发送下一步请求
@@ -177,7 +189,7 @@ nextStepBtn.addEventListener('click', async () => {
 
 // 重置按钮点击事件
 resetBtn.addEventListener('click', async () => {
-    console.log('🔄 用户点击了重置按钮');
+    debugLog('🔄 用户点击了重置按钮');
 
     try {
         // 向content script发送重置请求
@@ -209,7 +221,7 @@ async function loadSettings() {
         const result = await chrome.storage.sync.get(['stepByStepMode']);
         const savedMode = result.stepByStepMode || false; // 默认为即时求解模式
         stepByStepMode.checked = savedMode;
-        console.log(`📂 加载设置: 步骤演示模式 = ${savedMode}`);
+        debugLog(`📂 加载设置: 步骤演示模式 = ${savedMode}`);
     } catch (error) {
         console.error('加载设置失败:', error);
     }
@@ -221,7 +233,7 @@ async function saveSettings() {
         await chrome.storage.sync.set({
             stepByStepMode: stepByStepMode.checked
         });
-        console.log(`💾 保存设置: 步骤演示模式 = ${stepByStepMode.checked}`);
+        debugLog(`💾 保存设置: 步骤演示模式 = ${stepByStepMode.checked}`);
     } catch (error) {
         console.error('保存设置失败:', error);
     }
@@ -229,14 +241,14 @@ async function saveSettings() {
 
 // 页面加载完成时的初始化
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 马赛克测试扩展popup已加载');
+    debugLog('🚀 马赛克测试扩展popup已加载');
 
     // 加载保存的设置
     await loadSettings();
 
     // 监听设置变化
     stepByStepMode.addEventListener('change', () => {
-        console.log(`🔄 设置已更改: 步骤演示模式 = ${stepByStepMode.checked}`);
+        debugLog(`🔄 设置已更改: 步骤演示模式 = ${stepByStepMode.checked}`);
         saveSettings(); // 立即保存设置
     });
 
