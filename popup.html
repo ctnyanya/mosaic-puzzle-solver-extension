@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    /* 扩展弹窗的样式 */
+    body {
+      width: 280px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    h2 {
+      color: #2196F3;
+      margin: 0 0 15px 0;
+      text-align: center;
+    }
+
+    /* 按钮通用样式 */
+    .button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    /* 不同颜色的按钮 */
+    .primary { background-color: #4CAF50; color: white; }
+    .secondary { background-color: #2196F3; color: white; }
+    .warning { background-color: #ff9800; color: white; }
+
+    .button:hover { opacity: 0.8; }
+    .button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 状态显示区域 */
+    .status {
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 12px;
+      display: none;
+    }
+
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    .info { background-color: #d1ecf1; color: #0c5460; }
+
+    /* 使用说明 */
+    .instructions {
+      margin-top: 15px;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    /* 切换开关样式 */
+    .toggle-container {
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+      margin-right: 8px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: #2196F3;
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
+
+    .toggle-label {
+      font-size: 12px;
+      color: #666;
+      vertical-align: middle;
+    }
+
+    /* 步骤信息显示 */
+    .step-info {
+      margin: 8px 0;
+      padding: 6px 8px;
+      background-color: #e3f2fd;
+      border: 1px solid #bbdefb;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 11px;
+      color: #1976d2;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 扩展标题 -->
+  <h2>🧩 马赛克测试器</h2>
+
+  <!-- 状态显示区域 -->
+  <div id="status" class="status"></div>
+
+  <!-- 求解模式切换 -->
+  <div class="toggle-container">
+    <label class="toggle-switch">
+      <input type="checkbox" id="stepByStepMode">
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">步骤演示模式</span>
+  </div>
+
+  <!-- 功能按钮 -->
+  <button id="analyzeBtn" class="button secondary">🔍 分析拼图</button>
+  <button id="solveBtn" class="button primary">🧠 求解拼图</button>
+  <button id="nextStepBtn" class="button warning" style="display: none;">👉 下一步</button>
+
+  <!-- 步骤信息显示区域 -->
+  <div id="stepInfo" class="step-info" style="display: none;">
+    <span id="stepText">等待开始...</span>
+  </div>
+
+  <button id="resetBtn" class="button" style="background-color: #f44336; color: white; font-size: 11px; padding: 5px;">🔄 重置</button>
+
+  <!-- 使用说明 -->
+  <div class="instructions">
+    <strong>📋 使用说明：</strong><br>
+    1. 打开马赛克拼图网页<br>
+    2. 选择求解模式（即时/步骤演示）<br>
+    3. 点击"求解拼图"开始自动求解<br>
+    <br>
+    <strong>🎯 目标网站：</strong><br>
+    cn.puzzle-minesweeper.com
+  </div>
+
+  <!-- JavaScript逻辑 -->
+  <script src="popup.js"></script>
+</body>
+</html>

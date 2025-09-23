@@ -1,0 +1,34 @@
+{
+  // Chrome扩展配置文件 - 这是扩展的"身份证"
+  "manifest_version": 3,  // 使用Manifest V3（最新版本）
+  "name": "马赛克拼图测试扩展",      // 扩展名称，会显示在扩展管理页面
+  "version": "1.0",               // 扩展版本号
+  "description": "测试马赛克拼图网页交互",  // 扩展描述
+
+  // 权限设置 - 告诉Chrome这个扩展需要哪些权限
+  "permissions": [
+    "activeTab",  // 允许访问当前活动标签页
+    "storage",    // 允许使用Chrome存储API保存设置
+    "scripting"   // 允许执行脚本来控制popup
+  ],
+
+  // 扩展图标行为设置
+  "action": {
+    "default_popup": "popup.html",  // 点击扩展图标时显示的页面
+    "default_title": "马赛克测试"   // 鼠标悬停在扩展图标上的提示文字
+  },
+
+  // Background Script - 后台脚本
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  // Content Scripts - 注入到网页中的脚本
+  "content_scripts": [
+    {
+      "matches": ["https://cn.puzzle-minesweeper.com/*"],  // 在哪些网页上运行脚本
+      "js": ["mosaic-solver.js", "content.js"],      // 要注入的JavaScript文件（算法文件先加载）
+      "run_at": "document_idle"  // 在页面加载完成后运行
+    }
+  ]
+}
