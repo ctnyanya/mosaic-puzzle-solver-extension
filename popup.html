@@ -50,6 +50,7 @@
     .success { background-color: #d4edda; color: #155724; }
     .error { background-color: #f8d7da; color: #721c24; }
     .info { background-color: #d1ecf1; color: #0c5460; }
+    .warning { background-color: #fff3cd; color: #856404; }
 
     /* 使用说明 */
     .instructions {
@@ -129,6 +130,35 @@
       color: #1976d2;
       min-height: 20px;
     }
+
+    /* 进度条样式 */
+    .progress-container {
+      margin: 8px 0;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .progress-bar {
+      height: 20px;
+      background: linear-gradient(90deg, #4CAF50, #2196F3);
+      width: 0%;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .progress-text {
+      text-align: center;
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -151,6 +181,12 @@
   <button id="analyzeBtn" class="button secondary">🔍 分析拼图</button>
   <button id="solveBtn" class="button primary">🧠 求解拼图</button>
   <button id="nextStepBtn" class="button warning" style="display: none;">👉 下一步</button>
+
+  <!-- 进度显示区域 -->
+  <div id="progressContainer" class="progress-container">
+    <div id="progressBar" class="progress-bar">0%</div>
+    <div id="progressText" class="progress-text">正在求解...</div>
+  </div>
 
   <!-- 步骤信息显示区域 -->
   <div id="stepInfo" class="step-info" style="display: none;">

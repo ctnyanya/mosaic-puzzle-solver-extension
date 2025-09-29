@@ -28,6 +28,9 @@ const stepByStepMode = document.getElementById('stepByStepMode');
 const statusDiv = document.getElementById('status');
 const stepInfo = document.getElementById('stepInfo');
 const stepText = document.getElementById('stepText');
+const progressContainer = document.getElementById('progressContainer');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
 
 // 工具函数：显示状态消息
 function showStatus(message, type = 'info') {
@@ -50,6 +53,21 @@ function showStepInfo(message) {
 // 工具函数：隐藏步骤信息
 function hideStepInfo() {
     stepInfo.style.display = 'none';
+}
+
+// 工具函数：显示进度
+function showProgress(percentage, resolvedCells, totalCells) {
+    progressContainer.style.display = 'block';
+    progressBar.style.width = percentage + '%';
+    progressBar.textContent = percentage + '%';
+    progressText.textContent = `已解决 ${resolvedCells}/${totalCells} 个单元格`;
+}
+
+// 工具函数：隐藏进度
+function hideProgress() {
+    progressContainer.style.display = 'none';
+    progressBar.style.width = '0%';
+    progressBar.textContent = '0%';
 }
 
 // 工具函数：向当前标签页的content script发送消息
@@ -118,6 +136,11 @@ solveBtn.addEventListener('click', async () => {
     solveBtn.disabled = true;
     solveBtn.textContent = isStepByStep ? '🎬 演示中...' : '🧠 求解中...';
 
+    // 显示进度条（仅在一次性求解模式下）
+    if (!isStepByStep) {
+        showProgress(0, 0, 100);
+    }
+
     try {
         // 向content script发送求解请求
         const response = await sendMessageToContentScript({
@@ -130,19 +153,23 @@ solveBtn.addEventListener('click', async () => {
 
             // 如果是步骤演示模式，显示下一步按钮和步骤信息
             if (isStepByStep) {
+                hideProgress();
                 nextStepBtn.style.display = 'block';
                 solveBtn.textContent = '🎬 演示中...';
                 showStepInfo('算法已准备就绪，点击"下一步"开始');
             } else {
                 hideStepInfo();
+                hideProgress();
             }
         } else {
             showStatus('求解失败', 'error');
+            hideProgress();
         }
 
     } catch (error) {
         console.error('求解拼图时出错:', error);
         showStatus('求解时发生错误', 'error');
+        hideProgress();
 
     } finally {
         // 根据模式设置恢复时间
@@ -203,6 +230,7 @@ resetBtn.addEventListener('click', async () => {
             // 重置UI状态
             nextStepBtn.style.display = 'none';
             hideStepInfo();
+            hideProgress();
             solveBtn.disabled = false;
             solveBtn.textContent = '🧠 求解拼图';
         } else {
@@ -238,6 +266,18 @@ async function saveSettings() {
         console.error('保存设置失败:', error);
     }
 }
+
+// 监听来自content script的进度更新消息
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'progress_update') {
+        showProgress(message.percentage, message.resolvedCells, message.totalCells);
+        sendResponse({success: true});
+    } else if (message.action === 'solver_timeout') {
+        showStatus(message.message, 'warning');
+        hideProgress();
+        sendResponse({success: true});
+    }
+});
 
 // 页面加载完成时的初始化
 document.addEventListener('DOMContentLoaded', async () => {

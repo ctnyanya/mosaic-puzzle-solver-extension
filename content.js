@@ -14,17 +14,21 @@ if (typeof window.MOSAIC_DEBUG === 'undefined') {
 
 // 调试日志函数
 function debugLog(...args) {
+    /*
     if (window.MOSAIC_DEBUG) {
-        debugLog(...args);
+        console.log(...args);
     }
+    */
+    
+    console.log(...args);
+    
+
 }
 
 debugLog("🎯 马赛克拼图扩展已加载！");
 
 // 全局变量：保存步骤演示的状态
 let stepSolverState = null;
-
-// 旧的控制器类已移至 mosaic-solver.js
 
 // 设置机器人标识 - 让网站知道我们是自动求解器
 function setRobotFlag() {
@@ -188,31 +192,6 @@ function analyzePuzzle() {
     return puzzleData;
 }
 
-// 测试功能：随机点击几个空白单元格
-function testRandomClicks() {
-    debugLog("🎲 测试随机点击功能...");
-
-    const puzzleData = analyzePuzzle();
-    const emptyCells = puzzleData.filter(c => c.state === 'empty');
-
-    if (emptyCells.length === 0) {
-        debugLog("❌ 没有找到空白单元格");
-        return;
-    }
-
-    // 随机选择5个空白单元格进行点击测试
-    const testCells = emptyCells.sort(() => Math.random() - 0.5).slice(0, 5);
-
-    debugLog(`🧪 准备同时点击 ${testCells.length} 个单元格...`);
-
-    // 同时点击所有选中的单元格
-    testCells.forEach((cell, index) => {
-        debugLog(`🎯 同时点击单元格 ${index + 1}: (${cell.row}, ${cell.col})`);
-        clickCell(cell);
-    });
-
-    debugLog("✅ 所有点击命令已发出！");
-}
 
 // 新增：批量点击函数 - 用于求解算法
 function clickMultipleCells(cells) {
@@ -226,9 +205,6 @@ function clickMultipleCells(cells) {
     debugLog("🎯 批量点击完成！");
 }
 
-// 算法相关代码已移至 mosaic-solver.js
-
-// 旧的Nonogram算法代码已移除，现在使用 mosaic-solver.js 中的马赛克算法
 
 // 从DOM数据转换为算法输入格式
 function convertToConstraintGrid(puzzleData) {
@@ -337,8 +313,30 @@ async function solveMosaicPuzzle(stepByStep = false) {
         debugLog("🎬 步骤演示完成！");
         return true; // 直接返回，不需要额外点击
     } else {
-        // 即时求解模式：算法完成后一次性点击
-        solution = solveMosaicAlgorithm(constraintGrid, false, null);
+        // 即时求解模式：算法完成后一次性点击，带进度回调
+        const progressCallback = (percentage, resolvedCells, totalCells) => {
+            // 发送进度更新消息到popup
+            chrome.runtime.sendMessage({
+                action: 'progress_update',
+                percentage: percentage,
+                resolvedCells: resolvedCells,
+                totalCells: totalCells
+            }).catch(() => {
+                // 忽略popup未打开时的错误
+            });
+        };
+
+        solution = solveMosaicAlgorithm(constraintGrid, false, null, progressCallback);
+
+        // 检查是否因安全限制而停止
+        if (window.SolverSafetyManager && window.SolverSafetyManager.isTimeoutExceeded) {
+            debugLog("⚠️ 求解因超时而停止");
+            // 发送超时消息到popup
+            chrome.runtime.sendMessage({
+                action: 'solver_timeout',
+                message: '求解超时（30秒），返回部分解'
+            }).catch(() => {});
+        }
 
         // 4. 转换解决方案为点击坐标
         const clickCoordinates = convertSolutionToClicks(solution, puzzleData);
@@ -352,21 +350,6 @@ async function solveMosaicPuzzle(stepByStep = false) {
     }
 }
 
-// 获取邻居单元格
-function getNeighbors(grid, row, col) {
-    const neighbors = [];
-    const directions = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
-
-    directions.forEach(([dr, dc]) => {
-        const newRow = row + dr;
-        const newCol = col + dc;
-        if (newRow >= 0 && newRow < grid.length && newCol >= 0 && newCol < grid[0].length) {
-            neighbors.push(grid[newRow][newCol]);
-        }
-    });
-
-    return neighbors;
-}
 
 // 即时执行所有点击
 function executeClicksInstantly(cells) {
@@ -391,121 +374,7 @@ function executeClicksWithDelay(cells) {
     });
 }
 
-// 新增：调试单元格事件监听器
-function debugCellEvents(cell) {
-    debugLog("🔍 调试单元格事件监听器...");
 
-    const element = cell.element;
-
-    // 检查所有事件监听器
-    const events = ['click', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'keydown', 'focus'];
-
-    events.forEach(eventType => {
-        element.addEventListener(eventType, (e) => {
-            debugLog(`   🎯 检测到 ${eventType} 事件:`, e);
-        }, { once: true, capture: true });
-    });
-
-    // 检查是否有jQuery事件
-    const jQueryEvents = element._events || $(element).data('events');
-    if (jQueryEvents) {
-        debugLog("   📚 jQuery事件:", jQueryEvents);
-    }
-
-    // 尝试手动触发原生click事件
-    setTimeout(() => {
-        debugLog("   🔥 尝试手动触发原生事件...");
-        element.click();
-    }, 1000);
-}
-
-// 新增：高级点击测试
-function advancedClickTest() {
-    debugLog("🧪 高级点击测试开始...");
-
-    const puzzleData = analyzePuzzle();
-    const emptyCells = puzzleData.filter(c => c.state === 'empty').slice(0, 1);
-
-    if (emptyCells.length === 0) {
-        debugLog("❌ 没有找到空白单元格");
-        return;
-    }
-
-    const testCell = emptyCells[0];
-    debugLog(`🎯 选择测试单元格: (${testCell.row}, ${testCell.col})`);
-
-    // 调试事件监听器
-    debugCellEvents(testCell);
-
-    // 尝试直接调用可能的JavaScript函数
-    setTimeout(() => {
-        debugLog("🔍 尝试查找游戏对象...");
-
-        // 检查全局游戏对象
-        if (window.Game) {
-            debugLog("   找到全局Game对象:", window.Game);
-        }
-
-        // 检查jQuery对象
-        if (window.$ && $('#game').length > 0) {
-            debugLog("   找到游戏容器jQuery对象");
-
-            // 尝试触发jQuery事件
-            $(testCell.element).trigger('click');
-            debugLog("   已触发jQuery click事件");
-        }
-
-        // 检查是否有特殊的游戏函数
-        ['cellClick', 'toggleCell', 'selectCell'].forEach(funcName => {
-            if (window[funcName]) {
-                debugLog(`   找到全局函数: ${funcName}`);
-            }
-        });
-
-        // 新增：检查网站内部的JavaScript代码
-        debugLog("🔍 检查网站内部代码...");
-
-        // 尝试查找所有可能的全局变量
-        const gameRelatedVars = Object.keys(window).filter(key =>
-            key.toLowerCase().includes('game') ||
-            key.toLowerCase().includes('puzzle') ||
-            key.toLowerCase().includes('mosaic') ||
-            key.toLowerCase().includes('cell')
-        );
-
-        if (gameRelatedVars.length > 0) {
-            debugLog("   找到相关全局变量:", gameRelatedVars);
-            gameRelatedVars.forEach(varName => {
-                debugLog(`   ${varName}:`, window[varName]);
-            });
-        }
-
-        // 尝试直接修改DOM元素的class
-        debugLog("🎯 尝试直接修改DOM...");
-        const originalClass = testCell.element.className;
-        debugLog(`   原始class: ${originalClass}`);
-
-        // 尝试切换到填充状态
-        if (originalClass.includes('cell-off')) {
-            testCell.element.className = originalClass.replace('cell-off', 'cell-on');
-            debugLog("   已尝试切换到 cell-on 状态");
-
-            // 检查是否成功
-            setTimeout(() => {
-                const newClass = testCell.element.className;
-                debugLog(`   修改后class: ${newClass}`);
-                if (newClass !== originalClass) {
-                    debugLog("   ✅ DOM修改成功！");
-                } else {
-                    debugLog("   ❌ DOM修改被覆盖，可能有JavaScript在监控");
-                    // 恢复原始状态
-                    testCell.element.className = originalClass;
-                }
-            }, 1000);
-        }
-
-    }, 2000);
-}
 
 // 重置扩展状态
 function resetExtensionState() {
